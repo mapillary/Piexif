@@ -33,16 +33,17 @@ with open(INPUT_FILE2, "rb") as f:
     I2 = f.read()
 
 
-ZEROTH_IFD = {ImageIFD.Software: b"PIL", # ascii
-               ImageIFD.Make: b"Make", # ascii
-               ImageIFD.Model: b"XXX-XXX", # ascii
-               ImageIFD.ResolutionUnit: 65535, # short
-               ImageIFD.BitsPerSample: (24, 24, 24), # short * 3
-               ImageIFD.XResolution: (4294967295, 1), # rational
-               ImageIFD.BlackLevelDeltaH: ((1, 1), (1, 1), (1, 1)), # srational
-               ImageIFD.ZZZTestSlong1: -11,
-               ImageIFD.ZZZTestSlong2: (-11, -11, -11, -11),
-               }
+ZEROTH_IFD = {
+    ImageIFD.Software: b"PIL", # ascii
+    ImageIFD.Make: b"Make", # ascii
+    ImageIFD.Model: b"XXX-XXX", # ascii
+    ImageIFD.ResolutionUnit: 65535, # short
+    ImageIFD.BitsPerSample: (24, 24, 24), # short * 3
+    ImageIFD.XResolution: (4294967295, 1), # rational
+    ImageIFD.BlackLevelDeltaH: ((1, 1), (1, 1), (1, 1)), # srational
+    ImageIFD.ZZZTestSlong1: -11,
+    ImageIFD.ZZZTestSlong2: (-11, -11, -11, -11),
+}
 
 WRONG_ZEROTH_IFD = {
     ImageIFD.Software: b"PIL", # ascii
@@ -56,34 +57,37 @@ WRONG_ZEROTH_IFD = {
     ImageIFD.ZZZTestSlong2: (-11,),
 }
 
-EXIF_IFD = {ExifIFD.DateTimeOriginal: b"2099:09:29 10:10:10", # ascii
-             ExifIFD.LensMake: b"LensMake", # ascii
-             ExifIFD.OECF: b"\xaa\xaa\xaa\xaa\xaa\xaa",  # undefined
-             ExifIFD.Sharpness: 65535, # short
-             ExifIFD.ISOSpeed: 4294967295, # long
-             ExifIFD.ExposureTime: (4294967295, 1), # rational
-             ExifIFD.LensSpecification: ((1, 1), (1, 1), (1, 1), (1, 1)),
-             ExifIFD.ExposureBiasValue: (2147483647, -2147483648), # srational
-             }
+EXIF_IFD = {
+    ExifIFD.DateTimeOriginal: b"2099:09:29 10:10:10", # ascii
+    ExifIFD.LensMake: b"LensMake", # ascii
+    ExifIFD.OECF: b"\xaa\xaa\xaa\xaa\xaa\xaa",  # undefined
+    ExifIFD.Sharpness: 65535, # short
+    ExifIFD.ISOSpeed: 4294967295, # long
+    ExifIFD.ExposureTime: (4294967295, 1), # rational
+    ExifIFD.LensSpecification: ((1, 1), (1, 1), (1, 1), (1, 1)),
+    ExifIFD.ExposureBiasValue: (2147483647, -2147483648), # srational
+}
+
+GPS_IFD = {
+    GPSIFD.GPSVersionID: (0, 0, 0, 1), # byte
+    GPSIFD.GPSAltitudeRef: 1, # byte
+    GPSIFD.GPSDateStamp: b"1999:99:99 99:99:99", # ascii
+    GPSIFD.GPSDifferential: 65535, # short
+    GPSIFD.GPSLatitude: (4294967295, 1), # rational
+}
+
+FIRST_IFD = {
+    ImageIFD.Software: b"PIL", # ascii
+    ImageIFD.Make: b"Make", # ascii
+    ImageIFD.Model: b"XXX-XXX", # ascii
+    ImageIFD.BitsPerSample: (24, 24, 24), # short * 3
+    ImageIFD.BlackLevelDeltaH: ((1, 1), (1, 1), (1, 1)),  # srational
+}
 
 
-GPS_IFD = {GPSIFD.GPSVersionID: (0, 0, 0, 1), # byte
-            GPSIFD.GPSAltitudeRef: 1, # byte
-            GPSIFD.GPSDateStamp: b"1999:99:99 99:99:99", # ascii
-            GPSIFD.GPSDifferential: 65535, # short
-            GPSIFD.GPSLatitude: (4294967295, 1), # rational
-            }
-
-
-FIRST_IFD = {ImageIFD.Software: b"PIL", # ascii
-              ImageIFD.Make: b"Make", # ascii
-              ImageIFD.Model: b"XXX-XXX", # ascii
-              ImageIFD.BitsPerSample: (24, 24, 24), # short * 3
-              ImageIFD.BlackLevelDeltaH: ((1, 1), (1, 1), (1, 1)),  # srational
-              }
-
-
-INTEROP_IFD = {piexif.InteropIFD.InteroperabilityIndex: b"R98"}
+INTEROP_IFD = {
+    piexif.InteropIFD.InteroperabilityIndex: b"R98"
+}
 
 
 def load_exif_by_PIL(f):
@@ -103,12 +107,14 @@ class ExifTests(unittest.TestCase):
 # load ------
     def test_no_exif_load(self):
         exif_dict = piexif.load(NOEXIF_FILE)
-        none_dict = {"0th":{},
-                     "Exif":{},
-                     "GPS":{},
-                     "Interop":{},
-                     "1st":{},
-                     "thumbnail":None}
+        none_dict = {
+            "0th":{},
+            "Exif":{},
+            "GPS":{},
+            "Interop":{},
+            "1st":{},
+            "thumbnail":None
+        }
         self.assertEqual(exif_dict, none_dict)
 
     def test_load(self):
@@ -183,12 +189,14 @@ class ExifTests(unittest.TestCase):
         thumb.save(thumbnail_io, "JPEG")
         thumb.close()
         thumb_data = thumbnail_io.getvalue()
-        exif_dict = {"0th":ZEROTH_IFD,
-                     "Exif":EXIF_IFD,
-                     "GPS":GPS_IFD,
-                     "Interop":INTEROP_IFD,
-                     "1st":FIRST_IFD,
-                     "thumbnail":thumb_data}
+        exif_dict = {
+            "0th":ZEROTH_IFD,
+            "Exif":EXIF_IFD,
+            "GPS":GPS_IFD,
+            "Interop":INTEROP_IFD,
+            "1st":FIRST_IFD,
+            "thumbnail":thumb_data
+        }
         exif_bytes = piexif.dump(exif_dict)
         im = Image.new("RGB", (80, 80))
 
@@ -226,12 +234,14 @@ class ExifTests(unittest.TestCase):
     def test_dump_fail(self):
         with open(os.path.join("tests", "images", "large.jpg"), "rb") as f:
             thumb_data = f.read()
-        exif_dict = {"0th":ZEROTH_IFD,
-                     "Exif":EXIF_IFD,
-                     "GPS":GPS_IFD,
-                     "Interop":INTEROP_IFD,
-                     "1st":FIRST_IFD,
-                     "thumbnail":thumb_data}
+        exif_dict = {
+            "0th":ZEROTH_IFD,
+            "Exif":EXIF_IFD,
+            "GPS":GPS_IFD,
+            "Interop":INTEROP_IFD,
+            "1st":FIRST_IFD,
+            "thumbnail":thumb_data
+        }
         with self.assertRaises(ValueError):
             piexif.dump(exif_dict)
 
@@ -292,12 +302,14 @@ class ExifTests(unittest.TestCase):
         thumb.save(thumbnail_io, "JPEG")
         thumb.close()
         thumb_data = thumbnail_io.getvalue()
-        exif_dict = {"0th":ZEROTH_IFD,
-                     "Exif":EXIF_IFD,
-                     "GPS":GPS_IFD,
-                     "Interop":INTEROP_IFD,
-                     "1st":FIRST_IFD,
-                     "thumbnail":thumb_data}
+        exif_dict = {
+            "0th":ZEROTH_IFD,
+            "Exif":EXIF_IFD,
+            "GPS":GPS_IFD,
+            "Interop":INTEROP_IFD,
+            "1st":FIRST_IFD,
+            "thumbnail":thumb_data
+        }
         exif_bytes = piexif.dump(exif_dict)
         im = Image.new("RGB", (80, 80))
 
@@ -320,36 +332,48 @@ class ExifTests(unittest.TestCase):
 
     def test_dump_and_load3(self):
         ascii_v = ["a", "ab", "abc", "abcd", "abcde"]
-        undefined_v = [b"\x00",
-                       b"\x00\x01",
-                       b"\x00\x01\x02",
-                       b"\x00\x01\x02\x03",
-                       b"\x00\x01\x02\x03\x04"]
-        byte_v = [255,
-                  (255, 254),
-                  (255, 254, 253),
-                  (255, 254, 253, 252),
-                  (255, 254, 253, 252, 251)]
-        short_v = [65535,
-                   (65535, 65534),
-                   (65535, 65534, 65533),
-                   (65535, 65534, 65533, 65532),
-                   (65535, 65534, 65533, 65532, 65531)]
-        long_v = [4294967295,
-                  (4294967295, 4294967294),
-                  (4294967295, 4294967294, 4294967293),
-                  (4294967295, 4294967294, 4294967293, 4294967292),
-                  (5, 4, 3, 2, 1)]
-        rational_v = [(4294967295, 4294967294),
-                      ((4294967295, 4294967294), (4294967293, 4294967292)),
-                      ((1, 2), (3, 4), (5, 6)),
-                      ((1, 2), (3, 4), (5, 6), (7, 8)),
-                      ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10))]
-        srational_v = [(2147483647, -2147483648),
-                       ((2147483647, -2147483648), (2147483645, 2147483644)),
-                       ((1, 2), (3, 4), (5, 6)),
-                       ((1, 2), (3, 4), (5, 6), (7, 8)),
-                       ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10))]
+        undefined_v = [
+            b"\x00",
+            b"\x00\x01",
+            b"\x00\x01\x02",
+            b"\x00\x01\x02\x03",
+            b"\x00\x01\x02\x03\x04"
+        ]
+        byte_v = [
+            255,
+            (255, 254),
+            (255, 254, 253),
+            (255, 254, 253, 252),
+            (255, 254, 253, 252, 251)
+        ]
+        short_v = [
+            65535,
+            (65535, 65534),
+            (65535, 65534, 65533),
+            (65535, 65534, 65533, 65532),
+            (65535, 65534, 65533, 65532, 65531)
+        ]
+        long_v = [
+            4294967295,
+            (4294967295, 4294967294),
+            (4294967295, 4294967294, 4294967293),
+            (4294967295, 4294967294, 4294967293, 4294967292),
+            (5, 4, 3, 2, 1)
+        ]
+        rational_v = [
+            (4294967295, 4294967294),
+            ((4294967295, 4294967294), (4294967293, 4294967292)),
+            ((1, 2), (3, 4), (5, 6)),
+            ((1, 2), (3, 4), (5, 6), (7, 8)),
+            ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10))
+        ]
+        srational_v = [
+            (2147483647, -2147483648),
+            ((2147483647, -2147483648), (2147483645, 2147483644)),
+            ((1, 2), (3, 4), (5, 6)),
+            ((1, 2), (3, 4), (5, 6), (7, 8)),
+            ((1, 2), (3, 4), (5, 6), (7, 8), (9, 10))
+        ]
         for x in range(5):
             exif_dict = {
                 "0th":{ImageIFD.ProcessingSoftware:ascii_v[x],
