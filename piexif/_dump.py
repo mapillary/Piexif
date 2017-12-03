@@ -9,7 +9,7 @@ from ._exif import *
 TIFF_HEADER_LENGTH = 8
 
 
-def dump(exif_dict_original):
+def dump(exif_dict_original, ignore_wrong_type=False):
     """
     py:function:: piexif.load(data)
 
@@ -60,18 +60,18 @@ def dump(exif_dict_original):
         exif_dict["1st"][ImageIFD.JPEGInterchangeFormatLength] = 1
         first_ifd = exif_dict["1st"]
 
-    zeroth_set = _dict_to_bytes(zeroth_ifd, "0th", 0)
+    zeroth_set = _dict_to_bytes(zeroth_ifd, "0th", 0, ignore_wrong_type)
     zeroth_length = (len(zeroth_set[0]) + exif_is * 12 + gps_is * 12 + 4 +
                      len(zeroth_set[1]))
 
     if exif_is:
-        exif_set = _dict_to_bytes(exif_ifd, "Exif", zeroth_length)
+        exif_set = _dict_to_bytes(exif_ifd, "Exif", zeroth_length, ignore_wrong_type)
         exif_length = len(exif_set[0]) + interop_is * 12 + len(exif_set[1])
     else:
         exif_bytes = b""
         exif_length = 0
     if gps_is:
-        gps_set = _dict_to_bytes(gps_ifd, "GPS", zeroth_length + exif_length)
+        gps_set = _dict_to_bytes(gps_ifd, "GPS", zeroth_length + exif_length, ignore_wrong_type)
         gps_bytes = b"".join(gps_set)
         gps_length = len(gps_bytes)
     else:
@@ -79,7 +79,7 @@ def dump(exif_dict_original):
         gps_length = 0
     if interop_is:
         offset = zeroth_length + exif_length + gps_length
-        interop_set = _dict_to_bytes(interop_ifd, "Interop", offset)
+        interop_set = _dict_to_bytes(interop_ifd, "Interop", offset, ignore_wrong_type)
         interop_bytes = b"".join(interop_set)
         interop_length = len(interop_bytes)
     else:
@@ -87,7 +87,7 @@ def dump(exif_dict_original):
         interop_length = 0
     if first_is:
         offset = zeroth_length + exif_length + gps_length + interop_length
-        first_set = _dict_to_bytes(first_ifd, "1st", offset)
+        first_set = _dict_to_bytes(first_ifd, "1st", offset, ignore_wrong_type)
         thumbnail = _get_thumbnail(exif_dict["thumbnail"])
         thumbnail_max_size = 64000
         if len(thumbnail) > thumbnail_max_size:
@@ -303,7 +303,11 @@ def _value_to_bytes(raw_value, value_type, offset):
     length_str = struct.pack(">I", length)
     return length_str, value_str, four_bytes_over
 
-def _dict_to_bytes(ifd_dict, ifd, ifd_offset):
+def _dict_to_bytes(ifd_dict, ifd, ifd_offset, ignore_wrong_type):
+    if ignore_wrong_type:
+        # remove wrong type values in "ifd_dict"
+        ifd_dict = _remove_wrong_type(ifd_dict, ifd, ifd_offset)
+
     tag_count = len(ifd_dict)
     entry_header = struct.pack(">H", tag_count)
     if ifd in ("0th", "1st"):
@@ -344,3 +348,31 @@ def _dict_to_bytes(ifd_dict, ifd, ifd_offset):
         entries += key_str + type_str + length_str + value_str
         values += four_bytes_over
     return (entry_header + entries, values)
+
+def _remove_wrong_type(ifd_dict, ifd, ifd_offset):
+    entries = b""
+    values = b""
+    entries_length = 0
+    for n, key in enumerate(sorted(ifd_dict)):
+        if (ifd == "0th") and (key in (ImageIFD.ExifTag, ImageIFD.GPSTag)):
+            continue
+        elif (ifd == "Exif") and (key == ExifIFD.InteroperabilityTag):
+            continue
+        elif (ifd == "1st") and (key in (ImageIFD.JPEGInterchangeFormat, ImageIFD.JPEGInterchangeFormatLength)):
+            continue
+
+        raw_value = ifd_dict[key]
+        key_str = struct.pack(">H", key)
+        value_type = TAGS[ifd][key]["type"]
+        type_str = struct.pack(">H", value_type)
+        four_bytes_over = b""
+
+        if isinstance(raw_value, numbers.Integral) or isinstance(raw_value, float):
+            raw_value = (raw_value,)
+        offset = TIFF_HEADER_LENGTH + entries_length + ifd_offset + len(values)
+
+        try:
+            _value_to_bytes(raw_value, value_type, offset)
+        except ValueError:
+            ifd_dict.pop(key)
+    return ifd_dict

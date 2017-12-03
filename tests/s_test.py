@@ -44,6 +44,17 @@ ZEROTH_IFD = {ImageIFD.Software: b"PIL", # ascii
                ImageIFD.ZZZTestSlong2: (-11, -11, -11, -11),
                }
 
+WRONG_ZEROTH_IFD = {
+    ImageIFD.Software: b"PIL", # ascii
+    ImageIFD.Make: b"Make", # ascii
+    ImageIFD.Model: b"XXX-XXX", # ascii
+    ImageIFD.ResolutionUnit: b"", # short
+    ImageIFD.BitsPerSample: 30, # short * 3
+    ImageIFD.XResolution: 1, # rational
+    ImageIFD.BlackLevelDeltaH: ((1,), (1,), (1,)), # srational
+    ImageIFD.ZZZTestSlong1: -11,
+    ImageIFD.ZZZTestSlong2: (-11,),
+}
 
 EXIF_IFD = {ExifIFD.DateTimeOriginal: b"2099:09:29 10:10:10", # ascii
              ExifIFD.LensMake: b"LensMake", # ascii
@@ -241,6 +252,20 @@ class ExifTests(unittest.TestCase):
         exif_dict = {"Exif":exif_ifd}
         with self.assertRaises(ValueError):
             piexif.dump(exif_dict)
+
+    def test_dump_with_ignore_option(self):
+        exif_dict = {"0th":WRONG_ZEROTH_IFD, "Exif":EXIF_IFD, "GPS":GPS_IFD}
+        t = time.time()
+        exif_bytes = piexif.dump(exif_dict, ignore_wrong_type=True)
+        t_cost = time.time() - t
+        print("'dump': {0}[sec]".format(t_cost))
+        im = Image.new("RGB", (8, 8))
+
+        o = io.BytesIO()
+        im.save(o, format="jpeg", exif=exif_bytes)
+        im.close()
+        o.seek(0)
+        exif = load_exif_by_PIL(o)
 
 # load and dump ------
     def test_dump_and_load(self):
