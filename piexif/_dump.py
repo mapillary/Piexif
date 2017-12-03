@@ -336,9 +336,11 @@ def _dict_to_bytes(ifd_dict, ifd, ifd_offset, ignore_wrong_type):
         offset = TIFF_HEADER_LENGTH + entries_length + ifd_offset + len(values)
 
         try:
-            length_str, value_str, four_bytes_over = _value_to_bytes(raw_value,
-                                                                     value_type,
-                                                                     offset)
+            length_str, value_str, four_bytes_over = _value_to_bytes(
+                raw_value,
+                value_type,
+                offset
+            )
         except ValueError:
             raise ValueError(
                 '"dump" got wrong type of exif value.\n' +
