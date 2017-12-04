@@ -375,6 +375,6 @@ def _remove_wrong_type(ifd_dict, ifd, ifd_offset):
 
         try:
             _value_to_bytes(raw_value, value_type, offset)
-        except ValueError:
+        except:
             ifd_dict.pop(key)
     return ifd_dict
