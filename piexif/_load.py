@@ -8,7 +8,7 @@ from ._exif import *
 LITTLE_ENDIAN = b"\x49\x49"
 
 
-def load(input_data, key_is_name=False):
+def load(input_data, key_is_name = False):
     """
     py:function:: piexif.load(filename)
 
@@ -93,10 +93,10 @@ class _ExifReader(object):
             else:
                 raise InvalidImageDataError("Given file is neither JPEG nor TIFF.")
 
-    def get_ifd_dict(self, pointer, ifd_name, read_unknown=False):
+    def get_ifd_dict(self, pointer, ifd_name, read_unknown = False):
         ifd_dict = {}
         tag_count = struct.unpack(self.endian_mark + "H",
-                                  self.tiftag[pointer: pointer+2])[0]
+                                  self.tiftag[pointer: pointer + 2])[0]
         offset = pointer + 2
         if ifd_name in ["0th", "1st"]:
             t = "Image"
@@ -105,23 +105,33 @@ class _ExifReader(object):
         p_and_value = []
         for x in range(tag_count):
             pointer = offset + 12 * x
-            tag = struct.unpack(self.endian_mark + "H",
-                       self.tiftag[pointer: pointer+2])[0]
-            value_type = struct.unpack(self.endian_mark + "H",
+            try:
+                tag = struct.unpack(self.endian_mark + "H",
+                           self.tiftag[pointer: pointer + 2])[0]
+            except:
+                continue
+            try:
+                value_type = struct.unpack(self.endian_mark + "H",
                          self.tiftag[pointer + 2: pointer + 4])[0]
-            value_num = struct.unpack(self.endian_mark + "L",
-                                      self.tiftag[pointer + 4: pointer + 8]
-                                      )[0]
-            value = self.tiftag[pointer+8: pointer+12]
+            except:
+                continue
+            try:
+                value_num = struct.unpack(self.endian_mark + "L",
+                                      self.tiftag[pointer + 4: pointer + 8])[0]
+            except:
+                continue
+            value = self.tiftag[pointer + 8: pointer + 12]
             p_and_value.append((pointer, value_type, value_num, value))
             v_set = (value_type, value_num, value, tag)
             if tag in TAGS[t]:
-                ifd_dict[tag] = self.convert_value(v_set)
+                if value_type == TAGS[t][tag]['type']:
+                    ifd_dict[tag] = self.convert_value(v_set)
+                else:
+                    print("Warning, tag " + str(TAGS[t][tag]['name'] + " ignored. The tag type is " + str(value_type) + " which is not according to its standard type " + str(TAGS[t][tag]['type'])))
             elif read_unknown:
                 ifd_dict[tag] = (v_set[0], v_set[1], v_set[2], self.tiftag)
-            #else:
+            # else:
             #    pass
-
         if ifd_name == "0th":
             pointer = offset + 12 * tag_count
             ifd_dict["first_ifd_pointer"] = self.tiftag[pointer:pointer + 4]
@@ -133,36 +143,36 @@ class _ExifReader(object):
         length = val[1]
         value = val[2]
 
-        if t == TYPES.Byte: # BYTE
+        if t == TYPES.Byte:  # BYTE
             if length > 4:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack("B" * length,
                                      self.tiftag[pointer: pointer + length])
             else:
                 data = struct.unpack("B" * length, value[0:length])
-        elif t == TYPES.Ascii: # ASCII
+        elif t == TYPES.Ascii:  # ASCII
             if length > 4:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
-                data = self.tiftag[pointer: pointer+length - 1]
+                data = self.tiftag[pointer: pointer + length - 1]
             else:
                 data = value[0: length - 1]
-        elif t == TYPES.Short: # SHORT
+        elif t == TYPES.Short:  # SHORT
             if length > 2:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack(self.endian_mark + "H" * length,
-                                     self.tiftag[pointer: pointer+length*2])
+                                     self.tiftag[pointer: pointer + length * 2])
             else:
                 data = struct.unpack(self.endian_mark + "H" * length,
                                      value[0:length * 2])
-        elif t == TYPES.Long: # LONG
+        elif t == TYPES.Long:  # LONG
             if length > 1:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack(self.endian_mark + "L" * length,
-                                     self.tiftag[pointer: pointer+length*4])
+                                     self.tiftag[pointer: pointer + length * 4])
             else:
                 data = struct.unpack(self.endian_mark + "L" * length,
                                      value)
-        elif t == TYPES.Rational: # RATIONAL
+        elif t == TYPES.Rational:  # RATIONAL
             pointer = struct.unpack(self.endian_mark + "L", value)[0]
             if length > 1:
                 data = tuple(
@@ -180,36 +190,36 @@ class _ExifReader(object):
                         struct.unpack(self.endian_mark + "L",
                                       self.tiftag[pointer + 4: pointer + 8]
                                       )[0])
-        elif t == TYPES.SByte: # SIGNED BYTES
+        elif t == TYPES.SByte:  # SIGNED BYTES
             if length > 4:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack("b" * length,
                                      self.tiftag[pointer: pointer + length])
             else:
                 data = struct.unpack("b" * length, value[0:length])
-        elif t == TYPES.Undefined: # UNDEFINED BYTES
+        elif t == TYPES.Undefined:  # UNDEFINED BYTES
             if length > 4:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
-                data = self.tiftag[pointer: pointer+length]
+                data = self.tiftag[pointer: pointer + length]
             else:
                 data = value[0:length]
-        elif t == TYPES.SShort: # SIGNED SHORT
+        elif t == TYPES.SShort:  # SIGNED SHORT
             if length > 2:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack(self.endian_mark + "h" * length,
-                                     self.tiftag[pointer: pointer+length*2])
+                                     self.tiftag[pointer: pointer + length * 2])
             else:
                 data = struct.unpack(self.endian_mark + "h" * length,
                                      value[0:length * 2])
-        elif t == TYPES.SLong: # SLONG
+        elif t == TYPES.SLong:  # SLONG
             if length > 1:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack(self.endian_mark + "l" * length,
-                                     self.tiftag[pointer: pointer+length*4])
+                                     self.tiftag[pointer: pointer + length * 4])
             else:
                 data = struct.unpack(self.endian_mark + "l" * length,
                                      value)
-        elif t == TYPES.SRational: # SRATIONAL
+        elif t == TYPES.SRational:  # SRATIONAL
             pointer = struct.unpack(self.endian_mark + "L", value)[0]
             if length > 1:
                 data = tuple(
@@ -225,18 +235,18 @@ class _ExifReader(object):
                         struct.unpack(self.endian_mark + "l",
                                       self.tiftag[pointer + 4: pointer + 8]
                                       )[0])
-        elif t == TYPES.Float: # FLOAT
+        elif t == TYPES.Float:  # FLOAT
             if length > 1:
                 pointer = struct.unpack(self.endian_mark + "L", value)[0]
                 data = struct.unpack(self.endian_mark + "f" * length,
-                                     self.tiftag[pointer: pointer+length*4])
+                                     self.tiftag[pointer: pointer + length * 4])
             else:
                 data = struct.unpack(self.endian_mark + "f" * length,
                                      value)
-        elif t == TYPES.DFloat: # DOUBLE
+        elif t == TYPES.DFloat:  # DOUBLE
             pointer = struct.unpack(self.endian_mark + "L", value)[0]
             data = struct.unpack(self.endian_mark + "d" * length,
-                                    self.tiftag[pointer: pointer+length*8])
+                                    self.tiftag[pointer: pointer + length * 8])
         else:
             raise ValueError("Exif might be wrong. Got incorrect value " +
                              "type to decode.\n" +
