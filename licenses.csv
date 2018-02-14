@@ -1,0 +1,21 @@
+Babel, 2.5.3, BSD
+Jinja2, 2.10, BSD
+MarkupSafe, 1.0, BSD
+Pillow, 4.2.1, "Standard PIL License"
+Pygments, 2.2.0, BSD
+Sphinx, 1.6.3, BSD
+alabaster, 0.7.10, BSD
+certifi, 2018.1.18, "Mozilla Public License 2.0"
+chardet, 3.0.4, LGPL
+docutils, 0.14, "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"
+idna, 2.6, BSD-like
+imagesize, 0.7.1, MIT
+olefile, 0.45.1, BSD
+pytz, 2018.3, MIT
+requests, 2.18.4, "Apache 2.0"
+setuptools, 38.4.0, MIT
+six, 1.11.0, MIT
+snowballstemmer, 1.2.1, BSD
+sphinxcontrib-websupport, 1.0.1, BSD
+typing, 3.6.4, "Python Software Foundation License"
+urllib3, 1.22, MIT
