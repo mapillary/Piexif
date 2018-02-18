@@ -6,6 +6,7 @@ from ._exif import *
 
 
 LITTLE_ENDIAN = b"\x49\x49"
+BIG_ENDIAN = b"\x4D\x4D"
 
 
 def load(input_data, key_is_name = False):
@@ -30,8 +31,11 @@ def load(input_data, key_is_name = False):
 
     if exifReader.tiftag[0:2] == LITTLE_ENDIAN:
         exifReader.endian_mark = "<"
-    else:
+    elif exifReader.tiftag[0:2] == BIG_ENDIAN:
         exifReader.endian_mark = ">"
+    else:
+        print("Exif header is invalid: %X %X" % (exifReader.tiftag[0], exifReader.tiftag[1]))
+        return exif_dict
 
     pointer = struct.unpack(exifReader.endian_mark + "L",
                             exifReader.tiftag[4:8])[0]

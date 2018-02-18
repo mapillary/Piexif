@@ -41,10 +41,20 @@ def read_exif_from_file(filename):
     while 1:
         length = struct.unpack(">H", head[2: 4])[0]
 
-        if head[:2] == b"\xff\xe1":
+        if head[:2] == b"\xff\xe0":
             segment_data = f.read(length - 2)
-            exif = head + segment_data
-            break
+            # print("APP0 segment identification is:", segment_data[:4])
+            head = f.read(HEAD_LENGTH)
+        elif head[:2] == b"\xff\xe1":
+            segment_data = f.read(length - 2)
+            # print("APP1 segment identification is:", segment_data[:4])
+            if segment_data[:4] == b'Exif':
+                # return 'Exif' data segment
+                exif = head + segment_data
+                break
+            else:
+                # skip this data segment
+                head = f.read(HEAD_LENGTH)
         elif head[0:1] == b"\xff":
             f.read(length - 2)
             head = f.read(HEAD_LENGTH)
