@@ -77,6 +77,9 @@ def merge_segments(segments, exif=b""):
     """Merges Exif with APP1 manipulations.
     """
     found = False
+
+    import pdb; pdb.set_trace()
+
     for i in range(0, len(segments)):
         if segments[i][0:2] == b"\xff\xe1" and \
            segments[i][4:10] == b"Exif\x00\x00":
@@ -89,5 +92,10 @@ def merge_segments(segments, exif=b""):
                 # remove additional occurences of APP1:Exif segment
                 # print("REMOVE Exif seg %d.." % i)
                 segments.pop(i)
+
+    # no Exif segment in the image, create one now if exists
+    if not found and exif:
+        segments.insert(1, exif)
+
     return b"".join(segments)
-        
+
