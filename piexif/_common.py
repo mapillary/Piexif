@@ -78,8 +78,6 @@ def merge_segments(segments, exif=b""):
     """
     found = False
 
-    import pdb; pdb.set_trace()
-
     for i in range(0, len(segments)):
         if segments[i][0:2] == b"\xff\xe1" and \
            segments[i][4:10] == b"Exif\x00\x00":
